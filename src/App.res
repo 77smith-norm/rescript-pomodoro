@@ -1,7 +1,5 @@
 @@live
 
-module SonnerToaster: {Toaster: React.componentType; success_: string => unit} = Js.require("./SonnerToaster")
-
 type state = {
   timer: Timer.timer,
   tasks: array<Tasks.task>,
@@ -48,10 +46,10 @@ let reducer = (state, action) => {
       if (completed) {
         switch t2.phase {
         | OnBreak => {
-            SonnerToaster.success_("Session complete! Take a break.")
+            SonnerToaster.toast.success("Session complete! Take a break.")
           }
         | Working => {
-            SonnerToaster.success_("Break over. Focus time!")
+            SonnerToaster.toast.success("Break over. Focus time!")
           }
         | _ => ()
         }
@@ -156,10 +154,10 @@ let make = () => {
   | n => Int.toString(n) ++ " sessions"
   }
 
-  <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+  <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
     <SonnerToaster.Toaster position="bottom-center" richColors={true} />
     <button
-      className="absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"
+      className="absolute top-4 right-4 inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
       onClick={_ => dispatch(OpenSettings)}>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
@@ -167,13 +165,13 @@ let make = () => {
       </svg>
     </button>
 
-    <div className={"w-full max-w-md bg-zinc-900 rounded-2xl p-5 sm:p-8 shadow-xl border border-zinc-800 mb-6 " ++ (switch state.timer.phase {
-  | Working => "ring-1 ring-emerald-900"
-  | OnBreak => "ring-1 ring-sky-900"
+    <div className={"w-full max-w-md bg-card text-card-foreground rounded-xl border shadow-sm px-6 py-6 mb-6 " ++ (switch state.timer.phase {
+  | Working => "ring-1 ring-emerald-900/50"
+  | OnBreak => "ring-1 ring-sky-900/50"
   | _ => ""
 })}>
       <div className="text-center mb-4">
-        <span className="text-zinc-400 text-sm uppercase tracking-wider">
+        <span className="text-muted-foreground text-sm uppercase tracking-wider">
           {React.string(phaseLabel)}
         </span>
       </div>
@@ -184,10 +182,10 @@ let make = () => {
         </span>
       </div>
 
-      <div className="w-full bg-zinc-800 rounded-full h-2 mb-6 overflow-hidden">
+      <div className="bg-primary/20 relative h-2 w-full overflow-hidden rounded-full">
         <div
-          className="bg-emerald-500 h-2 rounded-full transition-all duration-1000 ease-linear"
-          style={{width: Int.toString(progress) ++ "%"}}
+          className="bg-primary h-full w-full flex-1 transition-all"
+          style={{transform: "translateX(-" ++ Int.toString(100 - progress) ++ "%)"}}
         />
       </div>
 
@@ -195,31 +193,31 @@ let make = () => {
         {switch state.timer.phase {
         | Idle =>
           <button
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
             onClick={_ => dispatch(TimerStart)}>
             {React.string("Start")}
           </button>
         | Working =>
           <button
-            className="px-6 py-3 border border-zinc-600 hover:bg-zinc-800 text-zinc-200 rounded-lg font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
             onClick={_ => dispatch(TimerPause)}>
             {React.string("Pause")}
           </button>
         | OnBreak =>
           <button
-            className="px-6 py-3 border border-zinc-600 hover:bg-zinc-800 text-zinc-200 rounded-lg font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
             onClick={_ => dispatch(TimerPause)}>
             {React.string("Pause Break")}
           </button>
         | Paused =>
           <button
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
             onClick={_ => dispatch(TimerResume)}>
             {React.string("Resume")}
           </button>
         }}
         <button
-          className="px-6 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg font-medium transition-colors"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
           onClick={_ => dispatch(TimerReset)}>
           {React.string("Reset")}
         </button>
@@ -227,7 +225,7 @@ let make = () => {
     </div>
 
     <div className="mb-8">
-      <span className="inline-flex items-center px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 text-sm">
+      <span className="inline-flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-medium bg-secondary text-secondary-foreground">
         {React.string(sessionText)}
       </span>
     </div>
@@ -237,7 +235,7 @@ let make = () => {
         <input
           type_="text"
           inputMode="text"
-          className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 text-base placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           placeholder="Add a task..."
           value={state.newTaskTitle}
           onChange={e => {
@@ -251,7 +249,7 @@ let make = () => {
           }}
         />
         <button
-          className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
           onClick={_ => dispatch(TaskAdd)}>
           {React.string("Add")}
         </button>
