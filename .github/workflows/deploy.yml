@@ -1,0 +1,87 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Check bundle size (canary — must be > 100 kB)
+        run: |
+          node -e "
+            const { readdirSync, statSync } = require('fs');
+            const files = readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+            const maxSize = Math.max(...files.map(f => statSync('dist/assets/' + f).size));
+            console.log('Largest JS bundle:', Math.round(maxSize / 1024), 'kB');
+            if (maxSize < 100000) {
+              console.error('ERROR: Bundle too small — app likely not mounted');
+              process.exit(1);
+            }
+            console.log('Bundle size OK');
+          "
+
+      - name: Verify createRoot in bundle
+        run: |
+          node -e "
+            const { readdirSync, readFileSync, statSync } = require('fs');
+            const files = readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+            const largest = files.sort((a,b) =>
+              statSync('dist/assets/'+b).size - statSync('dist/assets/'+a).size
+            )[0];
+            const bundle = readFileSync('dist/assets/' + largest, 'utf8');
+            if (!bundle.includes('createRoot')) {
+              console.error('ERROR: createRoot not found in bundle');
+              process.exit(1);
+            }
+            console.log('createRoot present — OK');
+          "
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,33 @@
+{
+  "name": "rescript-pomodoro",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "__tests__",
+      "type": "dev"
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "esmodule",
+      "in-source": true
+    }
+  ],
+  "suffix": ".res.jsx",
+  "jsx": {
+    "version": 4,
+    "preserve": true
+  },
+  "dependencies": ["@rescript/react"],
+  "dev-dependencies": ["rescript-vitest"],
+  "compiler-flags": [],
+  "reanalyze": {
+    "analysis": ["dce"],
+    "suppress": [],
+    "unsuppress": [],
+    "transitive": false
+  }
+}

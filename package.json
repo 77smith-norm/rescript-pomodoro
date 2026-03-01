@@ -1,0 +1,43 @@
+{
+  "name": "rescript-pomodoro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rescript watch & vite",
+    "build": "rescript && vite build",
+    "preview": "vite preview",
+    "res:build": "rescript",
+    "res:watch": "rescript watch",
+    "res:clean": "rescript clean",
+    "res:analyze": "rescript-tools reanalyze -dce",
+    "res:analyze:json": "rescript-tools reanalyze -dce -json",
+    "test": "rescript && vitest run",
+    "lint": "eslint src/",
+    "check": "rescript && rescript-tools reanalyze -dce -json && eslint src/ && vitest run"
+  },
+  "dependencies": {
+    "@rescript/runtime": "^12.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@rescript/react": "^0.14.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "rescript": "^12.2.0",
+    "rescript-vitest": "^2.1.1",
+    "shadcn": "^3.8.5",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}
