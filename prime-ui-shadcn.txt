@@ -1,0 +1,158 @@
+## Context
+
+You are doing a shadcn design system pass on `rescript-pomodoro`. The app works (27 tests pass) but the current UI uses hardcoded Tailwind colors (bg-zinc-900, bg-emerald-500) instead of the shadcn CSS variable token system (bg-card, bg-primary, border-input, etc.). The CSS variables are already defined in src/index.css — they just aren't being used.
+
+Your job: rewrite **src/App.res only** to use the correct shadcn class strings from the Component Reference below. Do not guess — use the exact classes provided. This information came directly from the shadcn MCP server.
+
+Read AGENTS.md and .agents/skills/rescript-12/SKILL.md before touching any code.
+
+---
+
+## Component Reference (from shadcn MCP — use exactly as shown)
+
+### Button
+Base: `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50`
+
+Variants (add to base):
+- **default/primary**: `bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2`
+- **outline**: `border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2`
+- **ghost**: `hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2`
+- **destructive**: `bg-destructive text-white hover:bg-destructive/90 h-9 px-4 py-2`
+
+Icon button size: `size-9` (adds to base, no px/py)
+
+### Card
+Root: `bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm`
+Content area (no header): just add `px-6`
+
+### Progress Bar
+Root wrapper: `bg-primary/20 relative h-2 w-full overflow-hidden rounded-full`
+Indicator: `bg-primary h-full w-full flex-1 transition-all`
+Style on indicator: `transform: translateX(-${100 - value}%)` (NOT width %)
+
+### Badge
+Base: `inline-flex items-center justify-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium`
+- **default**: add `bg-primary text-primary-foreground`
+- **secondary**: add `bg-secondary text-secondary-foreground`
+- **outline**: add `border-border text-foreground`
+
+### Input
+Classes: `dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]`
+
+### Checkbox (native HTML — use accent color approach)
+Classes: `size-4 shrink-0 rounded border border-input bg-transparent accent-primary cursor-pointer`
+
+### Slider (native HTML range input — approximate shadcn look)
+Classes: `w-full h-2 rounded-full appearance-none cursor-pointer bg-primary/20 accent-primary`
+
+### Dialog (Settings overlay — implement manually)
+Backdrop: `fixed inset-0 z-50 bg-black/50`
+Content: `bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg sm:max-w-sm`
+Close button: `absolute top-4 right-4 rounded-xs opacity-70 hover:opacity-100 transition-opacity inline-flex items-center justify-center size-9`
+Title: `text-lg font-semibold leading-none tracking-tight`
+Description/label: `text-sm text-muted-foreground`
+
+### Root / Page Layout
+Keep ALL mobile fixes from the previous pass:
+- `px-4 py-6 sm:p-8`
+- `pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]`
+- `min-h-screen bg-background text-foreground` (change bg-zinc-950 → bg-background, text-zinc-50 → text-foreground)
+
+---
+
+## What to Change in src/App.res
+
+Go element by element and replace hardcoded colors with the token-based classes above.
+
+### 1. Root div
+```
+BEFORE: min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[...] pt-[...]
+AFTER:  min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]
+```
+
+### 2. Settings gear button (top-right)
+Apply ghost icon button: `absolute top-4 right-4 inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors`
+
+### 3. Timer card wrapper
+```
+BEFORE: w-full max-w-md bg-zinc-900 rounded-2xl p-5 sm:p-8 shadow-xl border border-zinc-800 mb-6
+AFTER:  w-full max-w-md bg-card text-card-foreground rounded-xl border shadow-sm px-6 py-6 mb-6
+```
+Add phase-aware ring (keep existing logic): `ring-1 ring-emerald-900/50` for Working, `ring-1 ring-sky-900/50` for OnBreak — these can stay as-is since they're accent color touches, not main chrome.
+
+### 4. Phase label
+```
+BEFORE: text-zinc-400 text-sm uppercase tracking-wider
+AFTER:  text-muted-foreground text-sm uppercase tracking-wider
+```
+
+### 5. Progress bar
+```
+BEFORE: <div bg-zinc-800 rounded-full h-2><div bg-emerald-500 h-2 style={{width: ...%}}
+AFTER:  <div bg-primary/20 relative h-2 w-full overflow-hidden rounded-full>
+          <div bg-primary h-full w-full flex-1 transition-all style={{transform: "translateX(-" ++ Int.toString(100 - progress) ++ "%)"}}
+```
+Note: The indicator uses translateX, not width.
+
+### 6. Timer control buttons
+Apply shadcn button classes exactly:
+- Start/Resume: base + default variant (`bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2`)
+- Pause/Pause Break: base + outline variant (`border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2`)
+- Reset: base + ghost variant (`hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2`)
+
+### 7. Session badge
+```
+BEFORE: inline-flex items-center px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 text-sm
+AFTER:  inline-flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-medium bg-secondary text-secondary-foreground
+```
+
+### 8. Task input
+Apply shadcn input classes. The task Add button: base + default variant.
+
+### 9. Task items
+```
+BEFORE: flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg group
+AFTER:  flex items-center gap-3 p-3 bg-card border rounded-lg group
+```
+Task title done: `line-through text-muted-foreground`
+Task title active: `text-card-foreground`
+Checkbox: `size-4 shrink-0 rounded border border-input accent-primary cursor-pointer`
+Delete button: `sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-destructive/10 hover:text-destructive rounded transition-opacity transition-colors` (keep mobile visibility fix)
+
+### 10. Settings dialog
+Backdrop: `fixed inset-0 bg-black/50 flex items-center justify-center z-50` (keep tap-to-close onClick)
+Content: `bg-background w-full max-w-[calc(100%-2rem)] sm:max-w-sm rounded-lg border p-6 shadow-lg`
+Title: `text-lg font-semibold leading-none tracking-tight text-foreground`
+Label: `block text-sm text-muted-foreground mb-3`
+Sliders: `w-full h-2 rounded-full appearance-none cursor-pointer bg-primary/20 accent-primary`
+
+---
+
+## ReScript notes for this file
+
+- Conditional className: use string concatenation → `"base-classes " ++ (cond ? "class-a" : "class-b")`
+- Style prop: `style={{transform: "translateX(-" ++ Int.toString(100 - progress) ++ "%)"}}` 
+- All JSX string children must be wrapped in `React.string()`
+- Do NOT use Cn.res for this — just inline the classes directly
+
+---
+
+## What NOT to change
+
+- `src/Timer.res` — pure logic, leave it
+- `src/Tasks.res` — pure logic, leave it
+- `src/Main.res` — bootstrap, leave it
+- `src/SonnerToaster.res` — bindings, leave it
+- `src/__tests__/` — tests, leave them
+- `src/index.css` — CSS variables, leave them
+- All mobile UX fixes from the previous pass (safe areas, delete button visibility, input text-base, task scroll cap, settings backdrop tap-to-close)
+
+---
+
+## Done When
+
+1. `pnpm run check` exits 0
+2. DCE output is `[]`
+3. All 27 tests still pass
+4. App uses CSS variable token classes (bg-primary, bg-card, text-muted-foreground, etc.) — NOT hardcoded zinc/emerald
+5. Committed: `git add -A && git commit -m "feat: shadcn design system pass — CSS variable tokens, correct component classes" && git push`

@@ -248,7 +248,7 @@ function App(props) {
   switch (match$4) {
     case "Idle" :
       tmp = <button
-        className={"px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"}
+        className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"}
         onClick={param => dispatch("TimerStart")}
       >
         {"Start"}
@@ -256,7 +256,7 @@ function App(props) {
       break;
     case "Working" :
       tmp = <button
-        className={"px-6 py-3 border border-zinc-600 hover:bg-zinc-800 text-zinc-200 rounded-lg font-medium transition-colors"}
+        className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"}
         onClick={param => dispatch("TimerPause")}
       >
         {"Pause"}
@@ -264,7 +264,7 @@ function App(props) {
       break;
     case "OnBreak" :
       tmp = <button
-        className={"px-6 py-3 border border-zinc-600 hover:bg-zinc-800 text-zinc-200 rounded-lg font-medium transition-colors"}
+        className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"}
         onClick={param => dispatch("TimerPause")}
       >
         {"Pause Break"}
@@ -272,7 +272,7 @@ function App(props) {
       break;
     case "Paused" :
       tmp = <button
-        className={"px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"}
+        className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"}
         onClick={param => dispatch("TimerResume")}
       >
         {"Resume"}
@@ -283,10 +283,10 @@ function App(props) {
   let tmp$1;
   switch (match$5) {
     case "Working" :
-      tmp$1 = "ring-1 ring-emerald-900";
+      tmp$1 = "ring-1 ring-emerald-900/50";
       break;
     case "OnBreak" :
-      tmp$1 = "ring-1 ring-sky-900";
+      tmp$1 = "ring-1 ring-sky-900/50";
       break;
     case "Idle" :
     case "Paused" :
@@ -294,14 +294,14 @@ function App(props) {
       break;
   }
   return <div
-    className={"min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"}
+    className={"min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"}
   >
     <Sonner.Toaster
       position={"bottom-center"}
       richColors={true}
     />
     <button
-      className={"absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"}
+      className={"absolute top-4 right-4 inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"}
       onClick={param => dispatch("OpenSettings")}
     >
       <svg
@@ -326,13 +326,13 @@ function App(props) {
       </svg>
     </button>
     <div
-      className={"w-full max-w-md bg-zinc-900 rounded-2xl p-5 sm:p-8 shadow-xl border border-zinc-800 mb-6 " + tmp$1}
+      className={"w-full max-w-md bg-card text-card-foreground rounded-xl border shadow-sm px-6 py-6 mb-6 " + tmp$1}
     >
       <div
         className={"text-center mb-4"}
       >
         <span
-          className={"text-zinc-400 text-sm uppercase tracking-wider"}
+          className={"text-muted-foreground text-sm uppercase tracking-wider"}
         >
           {phaseLabel}
         </span>
@@ -347,12 +347,12 @@ function App(props) {
         </span>
       </div>
       <div
-        className={"w-full bg-zinc-800 rounded-full h-2 mb-6 overflow-hidden"}
+        className={"bg-primary/20 relative h-2 w-full overflow-hidden rounded-full"}
       >
         <div
-          className={"bg-emerald-500 h-2 rounded-full transition-all duration-1000 ease-linear"}
+          className={"bg-primary h-full w-full flex-1 transition-all"}
           style={{
-            width: progress.toString() + "%"
+            transform: "translateX(-" + (100 - progress | 0).toString() + "%)"
           }}
         />
       </div>
@@ -361,7 +361,7 @@ function App(props) {
       >
         {tmp}
         <button
-          className={"px-6 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg font-medium transition-colors"}
+          className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"}
           onClick={param => dispatch("TimerReset")}
         >
           {"Reset"}
@@ -372,7 +372,7 @@ function App(props) {
       className={"mb-8"}
     >
       <span
-        className={"inline-flex items-center px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 text-sm"}
+        className={"inline-flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-medium bg-secondary text-secondary-foreground"}
       >
         {sessionText}
       </span>
@@ -384,7 +384,7 @@ function App(props) {
         className={"flex gap-2 mb-4"}
       >
         <input
-          className={"flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 text-base placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"}
+          className={"dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"}
           inputMode={"text"}
           placeholder={"Add a task..."}
           type={"text"}
@@ -403,7 +403,7 @@ function App(props) {
           }}
         />
         <button
-          className={"px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"}
+          className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"}
           onClick={param => dispatch("TaskAdd")}
         >
           {"Add"}
