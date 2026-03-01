@@ -1,0 +1,241 @@
+## Project Context
+
+You are working on `rescript-pomodoro` — a Pomodoro focus timer built with ReScript 12 + React 19 + shadcn/ui. This is a harness engineering exercise. Read `AGENTS.md` and `docs/design.md` before writing any code.
+
+**Key things to know immediately:**
+- Output suffix is `.res.jsx` (JSX preserve mode) — NOT `.res.mjs`
+- The skill file is at `.agents/skills/rescript-12/SKILL.md` — read it
+- `src/Main.res` is pre-written and must NOT be modified
+- `lib/utils.js` is pre-written and must NOT be modified
+- The shadcn MCP is configured — query it before implementing any shadcn component
+- 27 failing tests exist in `__tests__/Pomodoro_Test.res` — your job is to make them pass
+
+## Current State
+
+The scaffold is complete:
+- `rescript.json` — ReScript 12, `.res.jsx` suffix, JSX preserve mode
+- `vite.config.js` — Vite + plugin-react with `include: /\.res\.jsx$/` + babel-plugin-react-compiler
+- `src/Main.res` — crash-safe bootstrap (DO NOT TOUCH)
+- `src/App.res` — placeholder only (replace this)
+- `__tests__/Pomodoro_Test.res` — 27 tests, all failing because Timer.res and Tasks.res don't exist yet
+
+## Task
+
+Implement the full Pomodoro application in this order:
+
+### Phase 1: Pure Logic (make the tests pass)
+
+**1a. Create `src/Timer.res`** — pure state machine, no React.
+
+The timer type (exact field names required by tests):
+```res
+type phase = Idle | Working | OnBreak | Paused
+
+type timer = {
+  phase: phase,
+  timeLeft: int,
+  workSecs: int,
+  breakSecs: int,
+  sessionCount: int,
+}
+```
+
+Required functions (exact signatures):
+```
+Timer.makeInitial(~workSecs: int, ~breakSecs: int) -> timer
+Timer.start(timer) -> timer          // Idle -> Working
+Timer.pause(timer) -> timer          // Working/OnBreak -> Paused; Idle/Paused -> no-op
+Timer.resume(timer) -> timer         // Paused -> Working
+Timer.reset(timer) -> timer          // any -> Idle, timeLeft=workSecs, preserves sessionCount
+Timer.tick(timer) -> (timer, bool)   // (newState, didComplete)
+Timer.formatTime(seconds: int) -> string  // e.g. 90 -> "1:30", 61 -> "1:01", 0 -> "0:00"
+```
+
+Tick transition table (CRITICAL — implement exactly):
+| Phase | timeLeft | After tick |
+|-------|----------|------------|
+| Working | > 1 | Working, timeLeft-1, completed=false |
+| Working | 1 | OnBreak, timeLeft=breakSecs, sessionCount+1, completed=true |
+| OnBreak | > 1 | OnBreak, timeLeft-1, completed=false |
+| OnBreak | 1 | Working, timeLeft=workSecs, completed=true |
+| Idle | any | Idle, unchanged, completed=false |
+| Paused | any | Paused, unchanged, completed=false |
+
+**1b. Create `src/Tasks.res`** — pure task CRUD, no React.
+
+The task type (exact field names required by tests):
+```res
+type task = {
+  id: int,
+  title: string,
+  done_: bool,  // NOTE: "done" is a ReScript keyword — must use done_ with underscore
+}
+```
+
+Required functions (exact signatures):
+```
+Tasks.addTask(tasks: array<task>, title: string, id: int) -> array<task>
+Tasks.toggleTask(tasks: array<task>, id: int) -> array<task>
+Tasks.deleteTask(tasks: array<task>, id: int) -> array<task>
+Tasks.countDone(tasks: array<task>) -> int
+```
+
+**Run tests after Phase 1:**
+```bash
+pnpm test
+```
+All 27 tests must pass before proceeding to Phase 2.
+
+### Phase 2: App State + Reducer
+
+Replace `src/App.res` with the full application. The state type:
+
+```res
+type state = {
+  timer: Timer.timer,
+  tasks: array<Tasks.task>,
+  nextTaskId: int,
+  newTaskTitle: string,
+  settingsOpen: bool,
+}
+
+type action =
+  | TimerStart
+  | TimerPause
+  | TimerResume
+  | TimerReset
+  | TimerTick
+  | TaskAdd
+  | TaskToggle(int)
+  | TaskDelete(int)
+  | SetNewTaskTitle(string)
+  | OpenSettings
+  | CloseSettings
+  | UpdateWorkSecs(int)
+  | UpdateBreakSecs(int)
+```
+
+Reducer correctness table (CRITICAL):
+| Action | Effect |
+|--------|--------|
+| TimerStart | timer = Timer.start(timer) |
+| TimerPause | timer = Timer.pause(timer) |
+| TimerResume | timer = Timer.resume(timer) |
+| TimerReset | timer = Timer.reset(timer) |
+| TimerTick | let (t2, _) = Timer.tick(timer); timer = t2 |
+| TaskAdd | if newTaskTitle != "": tasks = Tasks.addTask(tasks, newTaskTitle, nextTaskId); nextTaskId+1; newTaskTitle="" |
+| TaskToggle(id) | tasks = Tasks.toggleTask(tasks, id) |
+| TaskDelete(id) | tasks = Tasks.deleteTask(tasks, id) |
+| SetNewTaskTitle(s) | newTaskTitle = s |
+| OpenSettings | settingsOpen = true |
+| CloseSettings | settingsOpen = false |
+| UpdateWorkSecs(s) | timer.workSecs = s; if Idle: timer.timeLeft = s |
+| UpdateBreakSecs(s) | timer.breakSecs = s |
+
+Use `React.useReducer` for state. Use `React.useEffect1` for the interval ticker:
+- Start interval when phase = Working
+- Clear interval when phase ≠ Working or Paused
+- Dispatch `TimerTick` every 1000ms
+
+### Phase 3: UI Components
+
+**Before implementing any shadcn component, query the shadcn MCP.**
+
+Query the MCP for: button, card, progress, badge, input, dialog, slider, checkbox, separator.
+
+Create these components in `src/components/`:
+
+**TimerDisplay.res** — Large countdown clock
+- Shows `Timer.formatTime(timer.timeLeft)` in large text
+- Shows phase label: "Focus", "Break", or "Paused"
+- No `@directive` — updates every second
+
+**ProgressBar.res** — Phase progress
+- `progress = ((total - timeLeft) / total) * 100`
+- Use shadcn Progress component class names
+- No `@directive` — updates every tick
+
+**TimerControls.res** — Start/Pause/Resume/Reset
+- Add `@directive("'use memo'")` annotation
+- Button states based on timer.phase:
+  - Idle: "Start" (primary)
+  - Working: "Pause" (outline)
+  - OnBreak: "Pause break" (outline)
+  - Paused: "Resume" (primary)
+  - Always show "Reset" (ghost)
+
+**SessionBadge.res** — Session count
+- Add `@directive("'use memo'")` annotation
+- Shows: "0 sessions" / "1 session" / "N sessions"
+- Use shadcn Badge styling
+
+**TaskInput.res** — Add new task
+- Add `@directive("'use memo'")` annotation
+- Input + "Add" button
+- Calls `dispatch(TaskAdd)` on Enter or button click
+
+**TaskItem.res** — Single task row
+- Add `@directive("'use memo'")` annotation
+- Checkbox + title (strikethrough when done_) + delete button
+- Props: task, onToggle, onDelete
+
+**TaskList.res** — Task list container
+- TaskInput + scrollable list of TaskItems
+
+**SettingsDialog.res** — Settings panel
+- Add `@directive("'use memo'")` annotation
+- Dialog with two Sliders: work (5–60 min, step 5) and break (1–15 min, step 1)
+- Triggered by a settings icon button
+- Closes via CloseSettings action
+
+### Phase 4: Wire it together in App.res
+
+Compose all components. Layout suggestion:
+- Full-screen dark background
+- Centered column: Timer card (large, prominent) → Session badge → Task list
+- Settings button in corner
+- Beautiful, calm, focused aesthetic
+
+### Phase 5: Quality Gate
+
+```bash
+pnpm run check
+```
+
+This runs: rescript compile + DCE analysis + ESLint + all tests.
+
+DCE output must be `[]`. If it shows dead code, remove it.
+ESLint must pass — no hooks violations.
+All 27 tests must pass.
+
+After gate passes:
+```bash
+git add -A && git commit -m "feat: session 1 — Timer, Tasks, full UI with shadcn + React Compiler" && git push
+```
+
+## Files & Structure
+
+Key files to read first:
+1. `AGENTS.md` — conventions, DO NOT TOUCH list, quality gate
+2. `docs/design.md` — complete state machine spec, component list
+3. `.agents/skills/rescript-12/SKILL.md` — syntax rules, common traps
+4. `__tests__/Pomodoro_Test.res` — the tests you must make pass
+5. `src/Main.res` — reference only, do not modify
+
+## Constraints
+
+- **DO NOT modify** `src/Main.res`, `src/lib/utils.js`, `src/index.css`, `opencode.json`
+- Use `done_` (with underscore) for the task completion field — `done` is a ReScript keyword
+- All JSX string children must be wrapped in `React.string()`
+- Use `type_` not `type` for HTML input type attribute
+- Wrap JSX arrays in `React.array(...)`
+- Query the shadcn MCP before writing any shadcn-styled component
+- Annotate exactly the components listed above with `@directive("'use memo'")` — no more, no less
+
+## Done When
+
+1. `pnpm run check` exits with code 0
+2. DCE reports `[]`
+3. All 27 tests pass
+4. App renders correctly in `pnpm run dev`
+5. Committed and pushed to origin/main

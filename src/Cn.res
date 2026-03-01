@@ -1,4 +1,6 @@
 // Binding to shadcn's cn() utility — merges Tailwind classes safely
+@@live
+
 @module("./lib/utils")
 external cn: (string, string) => string = "cn"
 
