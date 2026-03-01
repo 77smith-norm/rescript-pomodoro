@@ -890,3 +890,57 @@ The auto-detection gap will close via one of:
 2. ReScript preserve mode emits a named re-export (`export { make as App }`) so detection works automatically
 
 Watch `rescript-lang/rescript-compiler` JSX preserve mode issues and `reactwg/react-compiler` discussions.
+
+---
+
+## Never Create Handwritten `.js` Files Alongside `.res` Files
+
+When you are uncertain about a ReScript external binding, do NOT create a handwritten `.js` file as a fallback or workaround. This is always wrong.
+
+### Why this happens (and why it's wrong)
+
+Agents sometimes create a plain `.js` file next to a `.res` binding file when they are unsure the binding will work at runtime. For example:
+
+**WRONG — do not create this:**
+```js
+// src/SonnerToaster.js  ← DO NOT CREATE
+/* eslint-disable */
+export const Toaster = window.Sonner?.Toaster ?? function Toaster() { return null; };
+export const toast = window.Sonner?.toast ?? { success: () => {}, error: () => {} };
+```
+
+This file:
+- Is not compiled by ReScript — it lives outside the type system
+- Shadows or conflicts with `SonnerToaster.res.jsx` (the compiled output)
+- Produces ESLint warnings for its own `/* eslint-disable */` comment
+- Breaks the integrity of the codebase — you now have two competing implementations
+- Will cause confusing runtime behavior that is very hard to debug
+
+### The correct approach: write proper externals
+
+If you are uncertain how to bind a JavaScript module, write the correct ReScript external declaration. If the module exports named values:
+
+```res
+// CORRECT — bind Toaster as a named React component export
+module Toaster = {
+  @module("sonner") @react.component
+  external make: (
+    ~position: string=?,
+    ~richColors: bool=?,
+    ~theme: string=?,
+  ) => React.element = "Toaster"
+}
+
+// CORRECT — bind the toast object with a typed record
+type toastFn = {
+  success: string => unit,
+  error: string => unit,
+}
+
+@module("sonner")
+external toast: toastFn = "toast"
+```
+
+### The rule
+
+**If you find yourself creating a `.js` file in `src/`, stop.** Write a `.res` file with correct `@module` external bindings instead. The only `.js` files that should exist in a ReScript project's source directory are explicit utility files that are part of the design (e.g. `src/lib/utils.js` for the `cn()` helper), not workarounds for binding uncertainty.
