@@ -263,11 +263,25 @@ function App(props) {
       </button>;
       break;
   }
+  let match$5 = state.timer.phase;
+  let tmp$1;
+  switch (match$5) {
+    case "Working" :
+      tmp$1 = "ring-1 ring-emerald-900";
+      break;
+    case "OnBreak" :
+      tmp$1 = "ring-1 ring-sky-900";
+      break;
+    case "Idle" :
+    case "Paused" :
+      tmp$1 = "";
+      break;
+  }
   return <div
-    className={"min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center p-8"}
+    className={"min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"}
   >
     <button
-      className={"absolute top-4 right-4 p-2 rounded-full hover:bg-zinc-800 transition-colors"}
+      className={"absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"}
       onClick={param => dispatch("OpenSettings")}
     >
       <svg
@@ -292,7 +306,7 @@ function App(props) {
       </svg>
     </button>
     <div
-      className={"w-full max-w-md bg-zinc-900 rounded-2xl p-8 shadow-xl border border-zinc-800 mb-6"}
+      className={"w-full max-w-md bg-zinc-900 rounded-2xl p-5 sm:p-8 shadow-xl border border-zinc-800 mb-6 " + tmp$1}
     >
       <div
         className={"text-center mb-4"}
@@ -307,7 +321,7 @@ function App(props) {
         className={"text-center mb-6"}
       >
         <span
-          className={"text-7xl font-mono font-bold tracking-tight"}
+          className={"text-6xl sm:text-7xl font-mono font-bold tracking-tight"}
         >
           {Timer.formatTime(state.timer.timeLeft)}
         </span>
@@ -350,7 +364,8 @@ function App(props) {
         className={"flex gap-2 mb-4"}
       >
         <input
-          className={"flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"}
+          className={"flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 text-base placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"}
+          inputMode={"text"}
           placeholder={"Add a task..."}
           type={"text"}
           value={state.newTaskTitle}
@@ -375,7 +390,7 @@ function App(props) {
         </button>
       </div>
       <div
-        className={"space-y-2"}
+        className={"max-h-64 sm:max-h-80 overflow-y-auto space-y-2 pr-1"}
       >
         {Belt_Array.map(state.tasks, task => <div
           key={task.id.toString()} 
@@ -396,7 +411,7 @@ function App(props) {
             {task.title}
           </span>
           <button
-            className={"opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 rounded transition-opacity"}
+            className={"sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-zinc-800 rounded transition-opacity"}
             onClick={param => dispatch({
               TAG: "TaskDelete",
               _0: task.id
@@ -430,9 +445,13 @@ function App(props) {
     </div>
     {state.settingsOpen ? <div
         className={"fixed inset-0 bg-black/60 flex items-center justify-center z-50"}
+        onClick={param => dispatch("CloseSettings")}
       >
         <div
-          className={"bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl"}
+          className={"bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"}
+          onClick={e => {
+            e.stopPropagation();
+          }}
         >
           <div
             className={"flex justify-between items-center mb-6"}

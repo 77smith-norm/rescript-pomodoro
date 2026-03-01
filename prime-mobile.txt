@@ -1,0 +1,159 @@
+## Context
+
+You are doing a focused mobile UX pass on `rescript-pomodoro`. The app is functionally complete with 27 passing tests. Do NOT change Timer.res, Tasks.res, or __tests__/. Only improve App.res and the layout/UX.
+
+Read AGENTS.md and .agents/skills/rescript-12/SKILL.md before writing any code.
+
+**Before making any UI changes, query the shadcn MCP for component styling guidance.** This project has the shadcn MCP configured in opencode.json. Use it.
+
+Specifically, query the MCP for:
+- button (variants: default, outline, ghost, destructive)
+- card
+- badge
+- input
+- progress
+
+Use those class patterns when updating styles. The MCP is your source of truth for shadcn styling — not your training memory.
+
+## Target Device
+
+iPhone 11 Pro Max: 414px wide × 896px tall (logical), 3× scale.
+Safe areas: ~47px top (notch), ~34px bottom (home bar).
+Touch target minimum: 44×44pt (iOS HIG).
+
+## Current Problems to Fix (all in src/App.res)
+
+### 1 — Delete button is INVISIBLE on mobile (CRITICAL)
+
+Current (broken on touch):
+```
+className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 rounded transition-opacity"
+```
+
+Fix: Always visible on mobile. Use `sm:opacity-0 sm:group-hover:opacity-100 opacity-100` 
+so it's always visible on small screens, hover-to-show only on desktop.
+Also increase touch target — wrap in a container or use `p-2 min-w-[44px] min-h-[44px] flex items-center justify-center`.
+
+### 2 — Padding too tight on mobile
+
+Current root: `p-8` (32px all sides)
+Current timer card: `p-8`
+
+Fix:
+- Root: `px-4 py-6 sm:p-8` (16px sides on mobile)  
+- Timer card: `p-5 sm:p-8`
+
+### 3 — No safe-area-inset handling
+
+The iPhone 11 Pro Max has a notch and a home bar. Without insets, content overlaps UI chrome.
+
+Fix: On the root container, add:
+`pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]`
+
+In index.html, update the viewport meta tag to:
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+```
+
+Also add to src/index.css:
+```css
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+```
+
+### 4 — Input triggers iOS auto-zoom
+
+Any input with font-size < 16px causes iOS Safari to zoom in when focused.
+
+Current input: uses default small text.
+
+Fix: Add `text-base` (16px) to the task input className. Also add `inputMode` attribute — but note: 
+in ReScript JSX, `inputMode` is written as `inputMode`. 
+For text input, use `inputMode="text"` on the input element.
+
+### 5 — Task list has no height cap
+
+With many tasks, the page grows unboundedly on mobile. The user has to scroll the entire page.
+
+Fix: Wrap the task list `div.space-y-2` in:
+```
+<div className="max-h-64 sm:max-h-80 overflow-y-auto space-y-2 pr-1">
+```
+Remove the `space-y-2` from the inner div; it moves to the wrapper.
+
+### 6 — Timer display could scale better
+
+Current: `text-7xl` (72px) regardless of screen size.
+
+Fix: `text-6xl sm:text-7xl` — slightly smaller on phones (64px), full size on desktop.
+
+### 7 — Settings dialog needs tap-outside-to-close on mobile
+
+Current: Only the X button closes the dialog. On mobile, users expect to tap outside.
+
+Fix: The backdrop `div.fixed.inset-0.bg-black/60` should dispatch `CloseSettings` on click.
+The inner dialog card must stop click propagation to prevent it from closing when the dialog itself is tapped:
+```
+onClick={e => ReactEvent.Mouse.stopPropagation(e)}
+```
+
+### 8 — Settings should use px-4 margins on mobile
+
+Current settings dialog: `max-w-sm` centered with no horizontal margin.
+
+Fix: `w-full max-w-sm mx-4` so it has breathing room from the screen edge.
+
+### 9 — Touch target audit
+
+All interactive elements (buttons, checkboxes) must be at least 44×44pt.
+
+- Settings gear button: currently `p-2`. Add `min-w-[44px] min-h-[44px] flex items-center justify-center`.
+- Task delete button: currently `p-1`. Change to `p-2 min-w-[44px] min-h-[44px] flex items-center justify-center`.
+- Checkbox: wrap in a label or add `w-5 h-5` with a larger click target parent.
+- Timer control buttons: current `px-6 py-3` — these are fine (tall enough).
+
+### 10 — Phase-aware gradient or color on the timer card (polish)
+
+This is a bonus visual improvement. Subtle background tint per phase:
+- Idle: bg-zinc-900
+- Working: very subtle red/orange tint → `bg-zinc-900` with a `ring-1 ring-emerald-900` border
+- OnBreak: very subtle blue tint → `ring-1 ring-sky-900` border
+- Paused: neutral
+
+Use the phase to conditionally add a ring class to the timer card.
+
+## How to Do This
+
+1. Query the shadcn MCP for button, card, badge, input, progress styling
+2. Edit src/App.res only — do not touch Timer.res, Tasks.res, __tests__/, or Main.res
+3. Make each fix in order above
+4. After all fixes:
+
+```bash
+pnpm run check
+```
+
+Must pass. Then:
+
+```bash
+git add -A && git commit -m "feat: mobile UX pass — safe areas, touch targets, responsive padding, scrollable tasks" && git push
+```
+
+## ReScript reminders for this file
+
+- `ReactEvent.Mouse.stopPropagation(e)` — stops click bubbling
+- `inputMode` attribute maps directly to `inputMode` in ReScript JSX
+- Conditional className: use string concat or a helper like `"base " ++ (condition ? "a" : "b")`
+- `Cn.res` exports a `cn` binding to the tailwind-merge utility if you need it
+
+## Done When
+
+1. `pnpm run check` exits 0
+2. All 27 tests still pass
+3. Delete button visible on mobile (not hover-only)
+4. Safe area insets applied
+5. Input has text-base (16px) to prevent iOS zoom
+6. Task list scrollable with max-height
+7. Settings dialog closes on backdrop tap
+8. Committed and pushed

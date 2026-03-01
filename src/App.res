@@ -143,9 +143,9 @@ let make = () => {
   | n => Int.toString(n) ++ " sessions"
   }
 
-  <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center p-8">
+  <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
     <button
-      className="absolute top-4 right-4 p-2 rounded-full hover:bg-zinc-800 transition-colors"
+      className="absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"
       onClick={_ => dispatch(OpenSettings)}>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
@@ -153,7 +153,11 @@ let make = () => {
       </svg>
     </button>
 
-    <div className="w-full max-w-md bg-zinc-900 rounded-2xl p-8 shadow-xl border border-zinc-800 mb-6">
+    <div className={"w-full max-w-md bg-zinc-900 rounded-2xl p-5 sm:p-8 shadow-xl border border-zinc-800 mb-6 " ++ (switch state.timer.phase {
+  | Working => "ring-1 ring-emerald-900"
+  | OnBreak => "ring-1 ring-sky-900"
+  | _ => ""
+})}>
       <div className="text-center mb-4">
         <span className="text-zinc-400 text-sm uppercase tracking-wider">
           {React.string(phaseLabel)}
@@ -161,7 +165,7 @@ let make = () => {
       </div>
 
       <div className="text-center mb-6">
-        <span className="text-7xl font-mono font-bold tracking-tight">
+        <span className="text-6xl sm:text-7xl font-mono font-bold tracking-tight">
           {React.string(Timer.formatTime(state.timer.timeLeft))}
         </span>
       </div>
@@ -218,7 +222,8 @@ let make = () => {
       <div className="flex gap-2 mb-4">
         <input
           type_="text"
-          className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          inputMode="text"
+          className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-50 text-base placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           placeholder="Add a task..."
           value={state.newTaskTitle}
           onChange={e => {
@@ -238,7 +243,7 @@ let make = () => {
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="max-h-64 sm:max-h-80 overflow-y-auto space-y-2 pr-1">
         {React.array(
           Belt.Array.map(state.tasks, task => {
             <div
@@ -255,7 +260,7 @@ let make = () => {
                 {React.string(task.title)}
               </span>
               <button
-                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 rounded transition-opacity"
+                className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-zinc-800 rounded transition-opacity"
                 onClick={_ => dispatch(TaskDelete(task.id))}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 hover:text-red-400">
                   <path d="M3 6h18"></path>
@@ -270,8 +275,8 @@ let make = () => {
     </div>
 
     {if state.settingsOpen {
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={_ => dispatch(CloseSettings)}>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={e => ReactEvent.Mouse.stopPropagation(e)}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-zinc-50">
               {React.string("Settings")}
