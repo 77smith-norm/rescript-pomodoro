@@ -414,10 +414,10 @@ function App(props) {
       >
         {Belt_Array.map(state.tasks, task => <div
           key={task.id.toString()} 
-          className={"flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg group"}
+          className={"flex items-center gap-3 p-3 bg-card border rounded-lg group"}
         >
           <input
-            className={"w-5 h-5 rounded border-zinc-600 bg-zinc-800 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-zinc-900"}
+            className={"size-4 shrink-0 rounded border-input accent-primary cursor-pointer"}
             checked={task.done_}
             type={"checkbox"}
             onChange={param => dispatch({
@@ -426,19 +426,18 @@ function App(props) {
             })}
           />
           <span
-            className={task.done_ ? "flex-1 line-through text-zinc-500" : "flex-1 text-zinc-200"}
+            className={task.done_ ? "flex-1 line-through text-muted-foreground" : "flex-1 text-card-foreground"}
           >
             {task.title}
           </span>
           <button
-            className={"sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-zinc-800 rounded transition-opacity"}
+            className={"sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-destructive/10 hover:text-destructive rounded transition-opacity transition-colors text-muted-foreground"}
             onClick={param => dispatch({
               TAG: "TaskDelete",
               _0: task.id
             })}
           >
             <svg
-              className={"text-zinc-500 hover:text-red-400"}
               height={"18"}
               width={"18"}
               fill={"none"}
@@ -464,11 +463,11 @@ function App(props) {
       </div>
     </div>
     {state.settingsOpen ? <div
-        className={"fixed inset-0 bg-black/60 flex items-center justify-center z-50"}
+        className={"fixed inset-0 bg-black/50 flex items-center justify-center z-50"}
         onClick={param => dispatch("CloseSettings")}
       >
         <div
-          className={"bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"}
+          className={"bg-background border rounded-lg p-6 w-full max-w-sm mx-4 shadow-lg"}
           onClick={e => {
             e.stopPropagation();
           }}
@@ -477,16 +476,15 @@ function App(props) {
             className={"flex justify-between items-center mb-6"}
           >
             <h2
-              className={"text-xl font-semibold text-zinc-50"}
+              className={"text-lg font-semibold leading-none tracking-tight text-foreground"}
             >
               {"Settings"}
             </h2>
             <button
-              className={"p-1 hover:bg-zinc-800 rounded transition-colors"}
+              className={"inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"}
               onClick={param => dispatch("CloseSettings")}
             >
               <svg
-                className={"text-zinc-400"}
                 height={"20"}
                 width={"20"}
                 fill={"none"}
@@ -510,12 +508,12 @@ function App(props) {
             className={"mb-6"}
           >
             <label
-              className={"block text-sm text-zinc-400 mb-2"}
+              className={"block text-sm text-muted-foreground mb-3"}
             >
               {"Work Duration: " + (state.timer.workSecs / 60 | 0).toString() + " min"}
             </label>
             <input
-              className={"w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"}
+              className={"w-full h-2 bg-primary/20 rounded-full appearance-none cursor-pointer accent-primary"}
               max={"60"}
               min={"5"}
               step={5.0}
@@ -536,12 +534,12 @@ function App(props) {
             className={"mb-6"}
           >
             <label
-              className={"block text-sm text-zinc-400 mb-2"}
+              className={"block text-sm text-muted-foreground mb-3"}
             >
               {"Break Duration: " + (state.timer.breakSecs / 60 | 0).toString() + " min"}
             </label>
             <input
-              className={"w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"}
+              className={"w-full h-2 bg-primary/20 rounded-full appearance-none cursor-pointer accent-primary"}
               max={"15"}
               min={"1"}
               step={1.0}

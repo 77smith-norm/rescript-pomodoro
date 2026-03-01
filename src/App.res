@@ -260,21 +260,21 @@ let make = () => {
           Belt.Array.map(state.tasks, task => {
             <div
               key={Int.toString(task.id)}
-              className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg group">
+              className="flex items-center gap-3 p-3 bg-card border rounded-lg group">
               <input
                 type_="checkbox"
                 checked={task.done_}
                 onChange={_ => dispatch(TaskToggle(task.id))}
-                className="w-5 h-5 rounded border-zinc-600 bg-zinc-800 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-zinc-900"
+                className="size-4 shrink-0 rounded border-input accent-primary cursor-pointer"
               />
               <span
-                className={task.done_ ? "flex-1 line-through text-zinc-500" : "flex-1 text-zinc-200"}>
+                className={task.done_ ? "flex-1 line-through text-muted-foreground" : "flex-1 text-card-foreground"}>
                 {React.string(task.title)}
               </span>
               <button
-                className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-zinc-800 rounded transition-opacity"
+                className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-destructive/10 hover:text-destructive rounded transition-opacity transition-colors text-muted-foreground"
                 onClick={_ => dispatch(TaskDelete(task.id))}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 hover:text-red-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 6h18"></path>
                   <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
@@ -287,16 +287,16 @@ let make = () => {
     </div>
 
     {if state.settingsOpen {
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={_ => dispatch(CloseSettings)}>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={e => ReactEvent.Mouse.stopPropagation(e)}>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={_ => dispatch(CloseSettings)}>
+        <div className="bg-background border rounded-lg p-6 w-full max-w-sm mx-4 shadow-lg" onClick={e => ReactEvent.Mouse.stopPropagation(e)}>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-zinc-50">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
               {React.string("Settings")}
             </h2>
             <button
-              className="p-1 hover:bg-zinc-800 rounded transition-colors"
+              className="inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
               onClick={_ => dispatch(CloseSettings)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6 6 18"></path>
                 <path d="m6 6 12 12"></path>
               </svg>
@@ -304,7 +304,7 @@ let make = () => {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm text-zinc-400 mb-2">
+            <label className="block text-sm text-muted-foreground mb-3">
               {React.string("Work Duration: " ++ Int.toString(state.timer.workSecs / 60) ++ " min")}
             </label>
             <input
@@ -320,12 +320,12 @@ let make = () => {
                 | None => ()
                 }
               }}
-              className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              className="w-full h-2 bg-primary/20 rounded-full appearance-none cursor-pointer accent-primary"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm text-zinc-400 mb-2">
+            <label className="block text-sm text-muted-foreground mb-3">
               {React.string("Break Duration: " ++ Int.toString(state.timer.breakSecs / 60) ++ " min")}
             </label>
             <input
@@ -341,7 +341,7 @@ let make = () => {
                 | None => ()
                 }
               }}
-              className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              className="w-full h-2 bg-primary/20 rounded-full appearance-none cursor-pointer accent-primary"
             />
           </div>
         </div>

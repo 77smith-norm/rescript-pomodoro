@@ -25,6 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          cache: "pnpm"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -34,18 +35,55 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
+      - name: Compile ReScript
+        run: pnpm run res:build
+
+      - name: Verify compiled output exists
+        run: |
+          for f in src/App.res.jsx src/Main.res.jsx src/Timer.res.jsx src/Tasks.res.jsx; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: Expected compiled file missing: $f"
+              exit 1
+            fi
+          done
+          echo "All .res.jsx compiled files present"
+
+      - name: Guard against stray handwritten .js files
+        run: |
+          shopt -s globstar nullglob
+          for f in src/**/*.js src/*.js; do
+            [ -f "$f" ] || continue
+            if [ "$f" != "src/lib/utils.js" ]; then
+              echo "ERROR: Unexpected .js file found: $f"
+              echo "Agents must not create handwritten .js files alongside .res bindings."
+              exit 1
+            fi
+          done
+          echo "No stray .js files"
+
+      - name: Vite build
         run: pnpm run build
 
-      - name: Check bundle size (canary — must be > 100 kB)
+      - name: Verify base path in dist/index.html
+        run: |
+          if ! grep -q '/rescript-pomodoro/assets/' dist/index.html; then
+            echo "ERROR: dist/index.html missing /rescript-pomodoro/assets/ path"
+            echo "Base URL misconfigured — app will 404 on GitHub Pages"
+            cat dist/index.html
+            exit 1
+          fi
+          echo "Base path verified OK"
+
+      - name: Verify bundle size (>100 kB guard)
         run: |
           node -e "
             const { readdirSync, statSync } = require('fs');
             const files = readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+            if (files.length === 0) { console.error('No JS bundles in dist/assets'); process.exit(1); }
             const maxSize = Math.max(...files.map(f => statSync('dist/assets/' + f).size));
             console.log('Largest JS bundle:', Math.round(maxSize / 1024), 'kB');
             if (maxSize < 100000) {
-              console.error('ERROR: Bundle too small — app likely not mounted');
+              console.error('ERROR: Bundle too small — app likely not mounting');
               process.exit(1);
             }
             console.log('Bundle size OK');
@@ -61,10 +99,10 @@ jobs:
             )[0];
             const bundle = readFileSync('dist/assets/' + largest, 'utf8');
             if (!bundle.includes('createRoot')) {
-              console.error('ERROR: createRoot not found in bundle');
+              console.error('ERROR: createRoot not found — React not mounting');
               process.exit(1);
             }
-            console.log('createRoot present — OK');
+            console.log('createRoot present in', largest, '— OK');
           "
 
       - name: Setup Pages
