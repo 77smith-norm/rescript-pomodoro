@@ -3,6 +3,7 @@
 import * as Tasks from "./Tasks.res.jsx";
 import * as Timer from "./Timer.res.jsx";
 import * as React from "react";
+import * as Sonner from "sonner";
 import * as Belt_Array from "@rescript/runtime/lib/es6/Belt_Array.js";
 import * as Stdlib_Int from "@rescript/runtime/lib/es6/Stdlib_Int.js";
 import * as Primitive_int from "@rescript/runtime/lib/es6/Primitive_int.js";
@@ -45,8 +46,23 @@ function reducer(state, action) {
         };
       case "TimerTick" :
         let match = Timer.tick(state.timer);
+        let t2 = match[0];
+        if (match[1]) {
+          let match$1 = t2.phase;
+          switch (match$1) {
+            case "Working" :
+              Sonner.toast.success("Break over. Focus time!");
+              break;
+            case "OnBreak" :
+              Sonner.toast.success("Session complete! Take a break.");
+              break;
+            case "Idle" :
+            case "Paused" :
+              break;
+          }
+        }
         return {
-          timer: match[0],
+          timer: t2,
           tasks: state.tasks,
           nextTaskId: state.nextTaskId,
           newTaskTitle: state.newTaskTitle,
@@ -121,9 +137,9 @@ function reducer(state, action) {
           breakSecs: newTimer_breakSecs,
           sessionCount: newTimer_sessionCount
         };
-        let match$1 = newTimer_phase;
+        let match$2 = newTimer_phase;
         let finalTimer;
-        finalTimer = match$1 === "Idle" ? ({
+        finalTimer = match$2 === "Idle" ? ({
             phase: newTimer_phase,
             timeLeft: secs,
             workSecs: secs,
@@ -280,6 +296,10 @@ function App(props) {
   return <div
     className={"min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"}
   >
+    <Sonner.Toaster
+      position={"bottom-center"}
+      richColors={true}
+    />
     <button
       className={"absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"}
       onClick={param => dispatch("OpenSettings")}

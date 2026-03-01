@@ -42,7 +42,18 @@ let reducer = (state, action) => {
       timer: Timer.reset(state.timer),
     }
   | TimerTick => {
-      let (t2, _) = Timer.tick(state.timer)
+      let (t2, completed) = Timer.tick(state.timer)
+      if (completed) {
+        switch t2.phase {
+        | OnBreak => {
+            SonnerToaster.toast.success("Session complete! Take a break.")
+          }
+        | Working => {
+            SonnerToaster.toast.success("Break over. Focus time!")
+          }
+        | _ => ()
+        }
+      }
       {...state, timer: t2}
     }
   | TaskAdd => {
@@ -144,6 +155,7 @@ let make = () => {
   }
 
   <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center px-4 py-6 sm:p-8 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+    <SonnerToaster.Toaster position="bottom-center" richColors={true} />
     <button
       className="absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"
       onClick={_ => dispatch(OpenSettings)}>
