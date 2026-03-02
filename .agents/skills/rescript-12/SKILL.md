@@ -944,3 +944,53 @@ external toast: toastFn = "toast"
 ### The rule
 
 **If you find yourself creating a `.js` file in `src/`, stop.** Write a `.res` file with correct `@module` external bindings instead. The only `.js` files that should exist in a ReScript project's source directory are explicit utility files that are part of the design (e.g. `src/lib/utils.js` for the `cn()` helper), not workarounds for binding uncertainty.
+
+---
+
+## Tailwind v4 + shadcn CSS Variable Setup
+
+See also: `harness-engineering.md` (workspace) for the full pattern.
+
+### The required `@theme inline` bridge
+
+shadcn uses bare HSL format (`222.2 84% 4.9%`). Tailwind v4 generates `bg-background` as `background-color: var(--color-background)`. Without a bridge, `--color-background` is never defined — white screen.
+
+```css
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-primary: hsl(var(--primary));
+  --color-secondary: hsl(var(--secondary));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+```
+
+### CSS file must be in the Vite module graph
+
+`@tailwindcss/vite` only processes CSS files it can see. If `index.css` isn't imported in a JS entry point, add a `<link>` in `index.html`:
+
+```html
+<link rel="stylesheet" href="/src/index.css" />
+```
+
+Do NOT rely on Vite auto-discovery alone.
+
+### System-preference dark mode (no JS needed)
+
+```css
+/* Use media query, NOT .dark class, so it aligns with Tailwind v4's dark: variant */
+@media (prefers-color-scheme: dark) {
+  :root { --background: 222.2 84% 4.9%; /* ... */ }
+}
+```
+
+Remove `class="dark"` from `<html>`. The `dark:` utility variants and CSS variable overrides will both fire at the same media query automatically.
