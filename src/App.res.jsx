@@ -301,7 +301,7 @@ function App(props) {
       richColors={true}
     />
     <button
-      className={"absolute top-4 right-4 inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"}
+      className={"absolute top-4 right-6 inline-flex items-center justify-center size-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"}
       onClick={param => dispatch("OpenSettings")}
     >
       <svg
@@ -357,7 +357,7 @@ function App(props) {
         />
       </div>
       <div
-        className={"flex justify-center gap-3"}
+        className={"flex justify-center gap-3 mt-4"}
       >
         {tmp}
         <button
